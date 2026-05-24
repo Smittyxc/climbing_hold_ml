@@ -38,7 +38,7 @@ const router = createBrowserRouter([
             element: <RoutesPage />
           },
           {
-            path: "/routes/:boardId",
+            path: "/routes/:boardId/:routeId",
             element: <RouteBuilder />
           },
           {

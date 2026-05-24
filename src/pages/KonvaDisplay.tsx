@@ -4,9 +4,11 @@ import useImage from 'use-image';
 import type { Hold, HoldType } from '@/lib/db_types';
 
 // 1. Define the props the component expects
-interface RouteBuilderCanvasProps {
+interface KonvaRouteDisplayProps {
   imageUrl: string;
-  holds: Hold[];
+  allHolds: Hold[];
+  routeHolds: Record<string, HoldType>
+  onHoldClick: (id: string) => void;
 }
 
 const holdColors: Record<HoldType, string> = {
@@ -17,10 +19,13 @@ const holdColors: Record<HoldType, string> = {
   end: 'rgba(255, 0, 0, 0.6)',
 };
 
-const cycleOrder: HoldType[] = ['unassigned', 'start', 'hand', 'foot', 'end'];
-export default function RouteBuilderCanvas({ imageUrl, holds }: RouteBuilderCanvasProps) {
+export default function KonvaRouteDisplay({
+  imageUrl,
+  allHolds,
+  routeHolds,
+  onHoldClick
+}: KonvaRouteDisplayProps) {
   const [image, status] = useImage(imageUrl, 'anonymous');
-  const [routeHolds, setRouteHolds] = useState<Record<string, HoldType>>({});
 
   const [windowSize, setWindowSize] = useState({
     width: window.innerWidth,
@@ -37,15 +42,6 @@ export default function RouteBuilderCanvas({ imageUrl, holds }: RouteBuilderCanv
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
-
-  const handleHoldClick = (holdId: string) => {
-    setRouteHolds((prev) => {
-      const currentType = prev[holdId] || 'unassigned';
-      const currentIndex = cycleOrder.indexOf(currentType);
-      const nextType = cycleOrder[(currentIndex + 1) % cycleOrder.length];
-      return { ...prev, [holdId]: nextType };
-    });
-  };
 
   let scale = 1;
   let stageWidth = windowSize.width;
@@ -70,7 +66,7 @@ export default function RouteBuilderCanvas({ imageUrl, holds }: RouteBuilderCanv
         <Layer>
           {status === 'loaded' && <Image image={image} />}
 
-          {holds.map((hold) => {
+          {allHolds.map((hold) => {
             const holdId = hold.id as string;
             const currentType = routeHolds[holdId] || 'unassigned';
             const isActive = currentType !== 'unassigned';
@@ -85,8 +81,8 @@ export default function RouteBuilderCanvas({ imageUrl, holds }: RouteBuilderCanv
                 stroke={holdColors[currentType]}
                 strokeWidth={isActive ? (4 / scale) : (2 / scale)}
                 fill={isActive ? holdColors[currentType] : 'transparent'}
-                onClick={() => handleHoldClick(holdId)}
-                onTap={() => handleHoldClick(holdId)}
+                onClick={() => onHoldClick(holdId)}
+                onTap={() => onHoldClick(holdId)}
                 onMouseEnter={(e) => {
                   const container = e.target.getStage()?.container();
                   if (container) container.style.cursor = 'pointer';

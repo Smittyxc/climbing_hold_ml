@@ -1,39 +1,26 @@
-import NotFoundPage from "../pages/404Page";
 import { useSession } from "../context/SessionContext";
 import {
   SidebarInset,
   SidebarProvider,
 } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/layout/app-sidebar";
-import { Outlet } from "react-router-dom";
-
+import { Navigate, Outlet, useMatch } from "react-router-dom";
+import NavMobile from "@/components/layout/nav-mobile";
 
 const AuthProtectedRoute = () => {
   const { session } = useSession();
+  const isBuilderPage = useMatch('/routes/:boardId/:routeId');
+
   if (!session) {
-    return <NotFoundPage />;
+    return <Navigate to="/auth" replace />
   }
   return (
     <SidebarProvider className="md:m-0 p-0">
       <AppSidebar />
-      <SidebarInset className="md:m-0">
-        {/* <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
-          <SidebarTrigger className="-ml-1" />
-          <Separator orientation="vertical" className="mr-2 h-4" />
-          <Breadcrumb>
-            <BreadcrumbList>
-              <BreadcrumbItem className="hidden md:block">
-                <BreadcrumbLink href="#">
-                  Building Your Application
-                </BreadcrumbLink>
-              </BreadcrumbItem>
-              <BreadcrumbSeparator className="hidden md:block" />
-              <BreadcrumbItem>
-                <BreadcrumbPage>Data Fetching</BreadcrumbPage>
-              </BreadcrumbItem>
-            </BreadcrumbList>
-          </Breadcrumb>
-        </header> */}
+      <SidebarInset className={`relative flex-1 md:m-0 ${!isBuilderPage ? 'pb-16 md:pb-0' : ''}`}>
+        {!isBuilderPage &&
+          <NavMobile />
+        }
         <Outlet />
       </SidebarInset>
     </SidebarProvider>

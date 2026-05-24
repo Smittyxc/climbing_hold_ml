@@ -1,64 +1,58 @@
 import { useState, useEffect } from 'react';
-import { Image, Layer, Stage, Rect } from 'react-konva';
-import useImage from 'use-image';
-import type { BoardWithHolds, HoldType } from '@/lib/db_types';
-import { useParams } from 'react-router-dom';
-import { getBoardWithHolds } from '@/supabaseActions/queries';
+import type { BoardWithHolds, HoldType, RouteHoldInsert } from '@/lib/db_types';
+import { useNavigate, useParams } from 'react-router-dom';
+import { addRouteHolds, deleteRouteHolds, getBoardWithHolds, getRouteDetailsById, getRouteHoldsById, saveRoute, updateRoute } from '@/supabaseActions/queries';
+import KonvaRouteDisplay from './KonvaDisplay';
+import MobileRouteBuilder from '@/components/layout/mobile-route-builder';
+import { toast } from 'sonner';
+import { useSession } from '@/context/SessionContext';
+import { Skeleton } from '@/components/ui/skeleton';
 
-// const url = '/my_wall.jpg';
 
-const holdColors: Record<HoldType, string> = {
-  unassigned: 'rgba(255, 255, 255, 0.2)',
-  start: 'rgba(0, 255, 0, 0.6)',
-  hand: 'rgba(0, 0, 255, 0.6)',
-  foot: 'rgba(255, 255, 0, 0.6)',
-  end: 'rgba(255, 0, 0, 0.6)',
-};
 
 const cycleOrder: HoldType[] = ['unassigned', 'start', 'hand', 'foot', 'end'];
 
 export default function RouteBuilder() {
+  const navigate = useNavigate();
   const [routeHolds, setRouteHolds] = useState<Record<string, HoldType>>({});
-  const { boardId } = useParams<{ boardId: string }>();
-
+  const { boardId, routeId } = useParams<{ boardId: string, routeId: string }>();
   const [boardData, setBoardData] = useState<BoardWithHolds | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const imageUrl = boardData?.image_url || ''
+  const imageUrl = boardData?.image_url || '';
+  const { session } = useSession();
+  const user = session?.user;
 
-
-
-  const [image, status] = useImage(imageUrl, 'anonymous');
-
-
+  const [routeName, setRouteName] = useState("");
+  const [routeGrade, setRouteGrade] = useState("");
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
   useEffect(() => {
     const fetchBoard = async () => {
       if (!boardId) return;
 
-      const data = await getBoardWithHolds(boardId);
-      setBoardData(data);
+      const boardAndHolds = await getBoardWithHolds(boardId);
+      if (routeId !== 'new') {
+        const existingRouteHolds = await getRouteHoldsById(routeId)
+
+        const existingHolds = existingRouteHolds ? existingRouteHolds.reduce((acc, hold) => {
+          acc[hold.hold_id] = hold.type || 'unassigned'
+          return acc
+        }, {} as Record<string, HoldType>)
+          : {};
+
+        setRouteHolds(existingHolds)
+        const routeDetails = await getRouteDetailsById(routeId);
+        if (routeDetails) {
+          setRouteName(routeDetails.name);
+          setRouteGrade(routeDetails.grade || "");
+        }
+      }
+      setBoardData(boardAndHolds);
       setIsLoading(false);
     };
 
     fetchBoard();
-  }, [boardId]);
-
-
-  const [windowSize, setWindowSize] = useState({
-    width: window.innerWidth,
-    height: window.innerHeight,
-  });
-
-  useEffect(() => {
-    const handleResize = () => {
-      setWindowSize({
-        width: window.innerWidth,
-        height: window.innerHeight,
-      });
-    };
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
+  }, [boardId, routeId]);
 
   const handleHoldClick = (holdId: string) => {
     setRouteHolds((prev) => {
@@ -69,61 +63,88 @@ export default function RouteBuilder() {
     });
   };
 
-  let scale = 1;
-  let stageWidth = windowSize.width;
-  let stageHeight = windowSize.height;
-  if (isLoading || !image) {
-    return <div>WOAH NELLY</div>
-  }
-  if (image) {
-    const scaleX = windowSize.width / image.width;
-    const scaleY = windowSize.height / image.height;
-    scale = Math.min(scaleX, scaleY) * 0.95;
+  const handleSaveRoute = async () => {
+    if (!user?.id) {
+      console.error("User not logged in");
+      return;
+    }
 
-    stageWidth = image.width * scale;
-    stageHeight = image.height * scale;
-  }
+    if (!routeName.trim()) {
+      alert("Please provide a route name.");
+      return;
+    }
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const activeHolds = Object.entries(routeHolds).filter(([_, type]) => type !== 'unassigned');
+
+    if (activeHolds.length === 0) {
+      alert("Please select at least one hold for this route.");
+      return;
+    }
+
+    try {
+      let finalRouteId = routeId;
+      // STEP 1: UPSERT THE ROUTE
+      if (routeId === 'new' && boardId) {
+        // CREATE: Insert the new route and get the generated ID back
+        const routeData = await saveRoute(
+          boardId,
+          routeName,
+          routeGrade,
+          user.id
+        )
+
+        finalRouteId = routeData.id;
+      } else if (routeId) {
+        // EDIT: Update the existing route's name and grade
+        await updateRoute(routeId, routeName, routeGrade)
+        await deleteRouteHolds(routeId)
+      }
+
+      // STEP 2: INSERT THE HOLDS
+      const payload: RouteHoldInsert[] = activeHolds.map(([holdId, type]) => ({
+        route_id: finalRouteId as string,
+        hold_id: holdId,
+        type: type as HoldType,
+      }));
+
+      await addRouteHolds(payload)
+
+      toast.success("Successfully saved route!");
+      setIsDrawerOpen(false);
+      navigate('/routes');
+
+    } catch (error) {
+      console.error("Error saving route:", error);
+      alert("There was an error saving your route. Please try again.");
+    }
+  };
+
 
   return (
-    <div className='flex justify-center items-center h-screen w-screen md:w-[calc(100vw-16rem)] bg-gray-950'>
-      <Stage
-        width={stageWidth}
-        height={stageHeight}
-        scale={{ x: scale, y: scale }}
-      >
-        <Layer>
-          {status === 'loaded' && <Image image={image} />}
+    <div className='w-full h-screen'>
+      {isLoading ? (
+        <Skeleton />
+      ) : (
+        <>
+          <KonvaRouteDisplay
+            imageUrl={imageUrl}
+            allHolds={boardData?.holds || []}
+            routeHolds={routeHolds}
+            onHoldClick={handleHoldClick}
+          />
+          <MobileRouteBuilder
+            isDrawerOpen={isDrawerOpen}
+            setIsDrawerOpen={setIsDrawerOpen}
+            routeName={routeName}
+            setRouteName={setRouteName}
+            routeGrade={routeGrade}
+            setRouteGrade={setRouteGrade}
+            handleSaveRoute={handleSaveRoute}
+          />
+        </>
+      )}
 
-          {boardData?.holds.map((hold) => {
-            const holdId = hold.id as string;
-            const currentType = routeHolds[holdId] || 'unassigned';
-            const isActive = currentType !== 'unassigned';
-
-            return (
-              <Rect
-                key={holdId}
-                x={Number(hold.coord_a)}
-                y={Number(hold.coord_b)}
-                width={Number(hold.coord_c)}
-                height={Number(hold.coord_d)}
-                stroke={holdColors[currentType]}
-                strokeWidth={isActive ? (4 / scale) : (2 / scale)}
-                fill={isActive ? holdColors[currentType] : 'transparent'}
-                onClick={() => handleHoldClick(holdId)}
-                onTap={() => handleHoldClick(holdId)}
-                onMouseEnter={(e) => {
-                  const container = e.target.getStage()?.container();
-                  if (container) container.style.cursor = 'pointer';
-                }}
-                onMouseLeave={(e) => {
-                  const container = e.target.getStage()?.container();
-                  if (container) container.style.cursor = 'default';
-                }}
-              />
-            );
-          })}
-        </Layer>
-      </Stage>
     </div>
+
   );
 }
