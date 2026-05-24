@@ -7,6 +7,7 @@ import Providers from "../Providers.tsx";
 import { AuthPage } from "@/pages/AuthPage.tsx";
 import RouteBuilder from "@/pages/RouteBuilderPage.tsx";
 import BoardBuilder from "@/pages/BoardBuilderPage.tsx";
+import RoutesPage from "@/pages/RoutePage.tsx";
 
 const router = createBrowserRouter([
   // I recommend you reflect the routes here in the pages folder
@@ -34,6 +35,10 @@ const router = createBrowserRouter([
           },
           {
             path: "/routes",
+            element: <RoutesPage />
+          },
+          {
+            path: "/routes/:boardId",
             element: <RouteBuilder />
           },
           {

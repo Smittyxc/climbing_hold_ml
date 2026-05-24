@@ -1,17 +1,14 @@
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
+import type { HoldInsert } from '@/lib/db_types';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-
-import type { HoldInsert } from '@/lib/db_types';
-
 export interface RawHoldData {
   coords: [number, number, number, number]; // [x, y, width, height]
 }
-
 
 export function buildHoldsFromJson(jsonData: RawHoldData[], boardId: string): HoldInsert[] {
   return jsonData.map((item) => ({

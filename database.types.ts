@@ -14,16 +14,19 @@ export type Database = {
           id: string
           image_url: string | null
           name: string
+          user_id: string | null
         }
         Insert: {
           id?: string
           image_url?: string | null
           name: string
+          user_id?: string | null
         }
         Update: {
           id?: string
           image_url?: string | null
           name?: string
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -102,6 +105,7 @@ export type Database = {
           grade: string | null
           id: string
           name: string
+          user_id: string | null
         }
         Insert: {
           board_id?: string | null
@@ -109,6 +113,7 @@ export type Database = {
           grade?: string | null
           id?: string
           name: string
+          user_id?: string | null
         }
         Update: {
           board_id?: string | null
@@ -116,6 +121,7 @@ export type Database = {
           grade?: string | null
           id?: string
           name?: string
+          user_id?: string | null
         }
         Relationships: [
           {

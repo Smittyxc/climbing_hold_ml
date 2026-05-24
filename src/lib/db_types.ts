@@ -14,5 +14,6 @@ export type HoldInsert = Database['public']['Tables']['holds']['Insert'];
 
 export type HoldType = Database['public']['Enums']['hold_type'];
 
+export type BoardWithHolds = Board & { holds: Hold[] };
 
 

@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
 import { Image, Layer, Stage, Rect } from 'react-konva';
 import useImage from 'use-image';
-import type { BoardWithHolds, HoldType } from '@/lib/db_types';
-import { useParams } from 'react-router-dom';
-import { getBoardWithHolds } from '@/supabaseActions/queries';
+import type { Hold, HoldType } from '@/lib/db_types';
 
-// const url = '/my_wall.jpg';
+// 1. Define the props the component expects
+interface RouteBuilderCanvasProps {
+  imageUrl: string;
+  holds: Hold[];
+}
 
 const holdColors: Record<HoldType, string> = {
   unassigned: 'rgba(255, 255, 255, 0.2)',
@@ -16,33 +18,9 @@ const holdColors: Record<HoldType, string> = {
 };
 
 const cycleOrder: HoldType[] = ['unassigned', 'start', 'hand', 'foot', 'end'];
-
-export default function RouteBuilder() {
-  const [routeHolds, setRouteHolds] = useState<Record<string, HoldType>>({});
-  const { boardId } = useParams<{ boardId: string }>();
-
-  const [boardData, setBoardData] = useState<BoardWithHolds | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const imageUrl = boardData?.image_url || ''
-
-
-
+export default function RouteBuilderCanvas({ imageUrl, holds }: RouteBuilderCanvasProps) {
   const [image, status] = useImage(imageUrl, 'anonymous');
-
-
-
-  useEffect(() => {
-    const fetchBoard = async () => {
-      if (!boardId) return;
-
-      const data = await getBoardWithHolds(boardId);
-      setBoardData(data);
-      setIsLoading(false);
-    };
-
-    fetchBoard();
-  }, [boardId]);
-
+  const [routeHolds, setRouteHolds] = useState<Record<string, HoldType>>({});
 
   const [windowSize, setWindowSize] = useState({
     width: window.innerWidth,
@@ -72,9 +50,7 @@ export default function RouteBuilder() {
   let scale = 1;
   let stageWidth = windowSize.width;
   let stageHeight = windowSize.height;
-  if (isLoading || !image) {
-    return <div>WOAH NELLY</div>
-  }
+
   if (image) {
     const scaleX = windowSize.width / image.width;
     const scaleY = windowSize.height / image.height;
@@ -94,7 +70,7 @@ export default function RouteBuilder() {
         <Layer>
           {status === 'loaded' && <Image image={image} />}
 
-          {boardData?.holds.map((hold) => {
+          {holds.map((hold) => {
             const holdId = hold.id as string;
             const currentType = routeHolds[holdId] || 'unassigned';
             const isActive = currentType !== 'unassigned';
