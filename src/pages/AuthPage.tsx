@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Link, useNavigate } from "react-router-dom";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import supabase from "@/supabase";
+import supabaseClient from "@/lib/supabaseClient";
 import { useSession } from "@/context/SessionContext";
 
 export function AuthPage() {
@@ -22,7 +22,7 @@ export function AuthPage() {
     try {
       setLoading(true);
 
-      const { error } = await supabase.auth.signInWithPassword({
+      const { error } = await supabaseClient.auth.signInWithPassword({
         email,
         password,
       });
@@ -46,7 +46,7 @@ export function AuthPage() {
     try {
       setLoading(true);
 
-      const { error } = await supabase.auth.signUp({
+      const { error } = await supabaseClient.auth.signUp({
         email,
         password,
       });
@@ -162,11 +162,11 @@ export function AuthPage() {
         </div>
       </div>
       <div className="relative hidden bg-muted lg:block">
-        <img
+        {/* <img
           src="/image.avif"
           alt="Image"
           className="absolute inset-0 h-full w-full object-cover dark:brightness-[0.2] dark:grayscale"
-        />
+        /> */}
       </div>
     </div>
   );

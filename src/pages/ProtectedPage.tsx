@@ -1,7 +1,7 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useSession } from "../context/SessionContext";
 import { Button } from "@/components/ui/button";
-import supabase from "@/supabase";
+import supabaseClient from "@/lib/supabaseClient";
 
 const ProtectedPage = () => {
   const { session } = useSession();
@@ -17,7 +17,7 @@ const ProtectedPage = () => {
       </Button>
       <Button
         onClick={() => {
-          supabase.auth.signOut().then(() => {
+          supabaseClient.auth.signOut().then(() => {
             navigate("/");
           });
         }}

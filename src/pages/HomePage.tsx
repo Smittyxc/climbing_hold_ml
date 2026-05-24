@@ -10,7 +10,6 @@ import {
   CardTitle,
   CardDescription,
 } from "@/components/ui/card";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   NavigationMenu,
   NavigationMenuItem,
@@ -18,7 +17,7 @@ import {
 } from "@/components/ui/navigation-menu";
 import { Separator } from "@/components/ui/separator";
 import { useSession } from "@/context/SessionContext";
-import supabase from "@/supabase";
+import supabaseClient from "@/lib/supabaseClient";
 
 interface FeatureCardProps {
   icon: React.ReactNode;
@@ -63,7 +62,7 @@ const LandingPage = () => {
                       variant="secondary"
                       className="text-zinc-600 hover:bg-zinc-100"
                       onClick={() => {
-                        supabase.auth.signOut();
+                        supabaseClient.auth.signOut();
                       }}
                     >
                       Sign out
@@ -143,73 +142,6 @@ const LandingPage = () => {
               title="Customer Focused"
               description="24/7 support and a team dedicated to your success every step of the way."
             />
-          </div>
-        </div>
-      </section>
-
-      {/* About Section */}
-      <section id="about" className="py-16 bg-gray-50">
-        <div className="container mx-auto px-4">
-          <div className="flex flex-col md:flex-row items-center gap-8">
-            <div className="md:w-1/2">
-              <div className="bg-zinc-100 rounded-xl h-64 md:h-80 w-full flex items-center justify-center text-zinc-500">
-                About Image Placeholder
-              </div>
-            </div>
-            <div className="md:w-1/2">
-              <h2 className="text-3xl font-bold mb-6 text-gray-800">
-                About Acme Inc
-              </h2>
-              <p className="text-gray-600 mb-4">
-                Founded in 1998, Acme Inc has been at the forefront of
-                innovation for over two decades. We've helped thousands of
-                businesses transform their operations and achieve unprecedented
-                growth.
-              </p>
-              <p className="text-gray-600 mb-6">
-                Our team of experts brings together diverse skills and
-                experiences to deliver solutions that are not just effective,
-                but revolutionary.
-              </p>
-              <Button
-                variant="outline"
-                className="border-zinc-600 text-zinc-600 hover:bg-zinc-600 hover:text-white"
-                asChild
-              >
-                <Link to="/about">Learn Our Story</Link>
-              </Button>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Testimonials Section */}
-      <section id="testimonials" className="py-16 bg-white">
-        <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center mb-12 text-gray-800">
-            What Our Clients Say
-          </h2>
-          <div className="max-w-3xl mx-auto">
-            <Card>
-              <CardContent className="p-8">
-                <p className="text-lg text-gray-600 mb-4">
-                  "Acme Inc transformed our business processes and helped us
-                  achieve 200% growth in just one year. Their team's dedication
-                  and expertise made all the difference."
-                </p>
-                <div className="flex items-center">
-                  <Avatar>
-                    <AvatarFallback className="bg-gray-300 text-gray-600">
-                      JS
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="ml-4">
-                    <p className="font-bold text-gray-800">Jane Smith</p>
-                    <p className="text-gray-600">CEO of TechForward</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
           </div>
         </div>
       </section>

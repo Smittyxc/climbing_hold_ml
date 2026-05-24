@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState } from "react";
-import supabase from "../supabase";
+import supabaseClient from "../lib/supabaseClient";
 import LoadingPage from "../pages/LoadingPage";
 import { Session } from "@supabase/supabase-js";
 
@@ -9,6 +9,7 @@ const SessionContext = createContext<{
   session: null,
 });
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useSession = () => {
   const context = useContext(SessionContext);
   if (!context) {
@@ -23,7 +24,7 @@ export const SessionProvider = ({ children }: Props) => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const authStateListener = supabase.auth.onAuthStateChange(
+    const authStateListener = supabaseClient.auth.onAuthStateChange(
       async (_, session) => {
         setSession(session);
         setIsLoading(false);
@@ -33,7 +34,7 @@ export const SessionProvider = ({ children }: Props) => {
     return () => {
       authStateListener.data.subscription.unsubscribe();
     };
-  }, [supabase]);
+  }, []);
 
   return (
     <SessionContext.Provider value={{ session }}>
