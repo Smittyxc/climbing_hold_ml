@@ -1,97 +1,148 @@
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useSession } from "../context/SessionContext";
 import { Button } from "@/components/ui/button";
 import supabaseClient from "@/lib/supabaseClient";
 import { getBoardsByUserId, updateUserDefaultBoard } from "@/supabaseActions/queries";
-import { Label } from "@/components/ui/label";
-
-import { useEffect, useState } from "react";
-import { Board } from "@/lib/db_types";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { LogOut } from "lucide-react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { LogOut, Mountain, LayoutDashboard, Settings2, Activity } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { Skeleton } from "@/components/ui/skeleton";
+import { toast } from "sonner";
 
 const ProtectedPage = () => {
   const { session, setDefaultBoard, defaultBoard } = useSession();
   const userId = session?.user.id || "";
-  const [boards, setBoards] = useState<Board[]>([]);
   const navigate = useNavigate();
+
+  const firstName = session?.user?.user_metadata?.first_name
+    || session?.user?.email?.split('@')[0]
+    || "Climber";
+
+  const { data: boards = [], isLoading } = useQuery({
+    queryKey: ['boards', userId],
+    queryFn: () => getBoardsByUserId(userId),
+    enabled: !!userId,
+  });
 
   const boardItems = boards.map((board) => ({
     value: board.id,
     label: board.name,
   }));
 
-  useEffect(() => {
-    if (!userId) return;
-    getBoardsByUserId(userId).then((response) => {
-      setBoards(response ?? []);
-    });
-  }, [userId]);
+  const handleBoardSelect = async (value: string) => {
+    const newValue = value === "unselected" ? null : value;
 
-  const handleBoardSelect = (value: string) => {
-    if (value === "unselected") {
-      setDefaultBoard(null);
-    } else {
+    try {
+      if (newValue) {
+        await updateUserDefaultBoard(newValue, session);
+        setDefaultBoard(newValue);
+      }
+    } catch (error) {
+      console.error("Failed to update default board", error);
+      toast.error("Failed to update default board");
 
-      updateUserDefaultBoard(value, session)
-      setDefaultBoard(value);
     }
   };
-  const defaultBoardName = boardItems.find(board => board.value === defaultBoard)?.label || undefined;
+
+  // const defaultBoardName = boardItems.find(board => board.value === defaultBoard)?.label;
+
   return (
-    <main className="flex max-w-3xl mx-auto flex-col">
-      <header className="sticky top-0 flex justify-between px-3 items-center text-white bg-orange-800 h-16">
-        <div className="w-6"></div>
-        <div>[Name]</div>
+    <div className="relative min-h-screen w-full max-w-md mx-auto flex flex-col bg-background">
+
+      {/* Sleek App Header */}
+      <header className="sticky top-0 z-10 bg-slate-800  border-b px-5 py-4 flex justify-between items-center">
+        <div className="flex items-center gap-2 text-white">
+          <Mountain className="w-6 h-6" />
+          <h1 className="text-xl font-bold tracking-tight">Garage Grind</h1>
+        </div>
         <Button
           variant="ghost"
+          size="icon"
+          className="text-white hover:text-destructive"
           onClick={() => supabaseClient.auth.signOut().then(() => navigate("/"))}
+          title="Sign Out"
         >
-          <LogOut className="size-8" />
+          <LogOut className="w-5 h-5" />
         </Button>
       </header>
-      <div className="flex flex-col p-4">
-        <h1 className="text-3xl font-bold pb-4">Welcome, "add public.users"</h1>
-        {/* <p>Current User: {session?.user.email || "None"}</p> */}
-        {defaultBoardName ? (
-          <>
-            <h2 className="pb-6 font-medium">Default Board:<span className="font-light pl-2">{defaultBoardName}</span></h2>
-            <Label htmlFor="board-select">Change Board</Label>
 
-          </>
-        ) : (
-          <Label htmlFor="board-select">Select a Board</Label>
-        )}
-        <>
-          <Select
-            onValueChange={handleBoardSelect}
-            value={defaultBoard || 'unselected'}
-          >
-            <SelectTrigger className="w-full max-w-48 mt-1">
-              <SelectValue placeholder="Select a board..." />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                <SelectItem value="clear-default" className="italic text-muted-foreground">
-                  None
-                </SelectItem>
+      <main className="flex-1 overflow-y-auto p-5 space-y-8 pb-24">
 
-                {boardItems.map(board => {
-                  return (
-                    <SelectItem key={board.value} value={board.value}>
-                      {board.label}
+        {/* Welcome Section */}
+        <section>
+          <h2 className="text-3xl font-bold tracking-tight">Welcome back,</h2>
+          <h2 className="text-3xl font-bold text-primary">{firstName}</h2>
+        </section>
+
+        {/* Active Board Card - Highlights the current context */}
+        <Card className={`border-2 transition-colors ${defaultBoard ? 'border-primary/50 bg-primary/5' : 'border-border'}`}>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Settings2 className="w-5 h-5 text-muted-foreground" />
+              Active Board
+            </CardTitle>
+            <CardDescription>
+              Set the wall you are currently climbing on.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {isLoading ? (
+              <Skeleton className="h-10 w-full rounded-md" />
+            ) : (
+              <Select onValueChange={handleBoardSelect} value={defaultBoard || 'unselected'}>
+                <SelectTrigger className="w-full bg-background">
+                  <SelectValue placeholder="Select a board..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    {/* Value changed to 'unselected' to match your function logic! */}
+                    <SelectItem value="unselected" className="italic text-muted-foreground">
+                      None
                     </SelectItem>
-                  )
-                })}
-                <SelectItem value="grapes">Grapes</SelectItem>
-                <SelectItem value="pineapple">Pineapple</SelectItem>
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-        </>
+                    {boardItems.map(board => (
+                      <SelectItem key={board.value} value={board.value}>
+                        {board.label}
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+            )}
+          </CardContent>
+        </Card>
 
-      </div>
-    </main>
+        {/* Quick Actions Grid */}
+        <section className="space-y-3">
+          <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Quick Actions</h3>
+
+          <div className="grid grid-cols-2 gap-3">
+            <Link to="/routes" className="block group">
+              <Card className="h-full hover:border-primary/50 hover:bg-accent transition-all">
+                <CardContent className="p-5 flex flex-col items-center justify-center text-center gap-3">
+                  <div className="p-3 bg-primary/10 rounded-full text-primary group-hover:scale-110 transition-transform">
+                    <Activity className="w-6 h-6" />
+                  </div>
+                  <span className="font-semibold text-sm">My Climbs</span>
+                </CardContent>
+              </Card>
+            </Link>
+
+            <Link to="/boards" className="block group">
+              <Card className="h-full hover:border-primary/50 hover:bg-accent transition-all">
+                <CardContent className="p-5 flex flex-col items-center justify-center text-center gap-3">
+                  <div className="p-3 bg-secondary rounded-full text-secondary-foreground group-hover:scale-110 transition-transform">
+                    <LayoutDashboard className="w-6 h-6" />
+                  </div>
+                  <span className="font-semibold text-sm">Manage Boards</span>
+                </CardContent>
+              </Card>
+            </Link>
+          </div>
+        </section>
+
+      </main>
+    </div>
   );
 };
 

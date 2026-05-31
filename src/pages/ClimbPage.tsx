@@ -1,32 +1,25 @@
-import { useEffect, useState } from 'react';
 import { useSession } from '@/context/SessionContext';
 import { getRoutesByUserId } from '@/supabaseActions/queries';
-import { Route } from '@/lib/db_types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Link } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 
 export default function ClimbPage() {
-  // Removed defaultBoard since it wasn't being used in the render
   const { session } = useSession();
   const user = session?.user;
 
-  const [userRoutes, setUserRoutes] = useState<Route[]>([]);
-  const [isLoadingRoutes, setIsLoadingRoutes] = useState(true);
+  const {
+    data: userRoutes = [],
+    isLoading,
+    isError,
+    error
+  } = useQuery({
+    queryKey: ['routes', user?.id],
 
-  useEffect(() => {
-    const fetchData = async () => {
-      if (!user?.id) {
-        setIsLoadingRoutes(false);
-        return;
-      }
-      const routesData = await getRoutesByUserId(user.id);
+    queryFn: () => getRoutesByUserId(user?.id || null),
 
-      setUserRoutes(routesData || []);
-      setIsLoadingRoutes(false);
-    };
-
-    fetchData();
-  }, [user?.id]);
+    enabled: !!user?.id,
+  });
 
   const sortedRoutes = [...userRoutes].sort((a, b) => {
     const aGrade = parseInt(a.grade?.slice(1) || '-1');
@@ -38,16 +31,22 @@ export default function ClimbPage() {
   return (
     <div className="relative h-screen w-full max-w-md mx-auto flex flex-col bg-background">
 
-      <header className="sticky top-0 z-10 bg-white border-b px-6 py-5">
+      <header className="sticky top-0 z-10 bg-slate-800 text-white border-b px-6 py-5 shadow-md">
         <h1 className="text-3xl font-bold tracking-tight">Your Climbs</h1>
       </header>
 
       <main className="flex-1 overflow-y-auto p-6 space-y-4 pb-24 md:pb-6">
-        {isLoadingRoutes ? (
+        {isLoading ? (
           <div className="space-y-3">
             <Skeleton className="h-16 w-full rounded-lg" />
             <Skeleton className="h-16 w-full rounded-lg" />
             <Skeleton className="h-16 w-full rounded-lg" />
+          </div>
+        ) : isError ? (
+          // NEW: Gracefully handle the error state in the UI
+          <div className="p-4 border border-red-500/50 bg-red-500/10 rounded-lg text-center text-red-500">
+            <p className="font-semibold">Failed to load climbs.</p>
+            <p className="text-sm opacity-80">{error?.message}</p>
           </div>
         ) : userRoutes.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-40 text-center px-4">

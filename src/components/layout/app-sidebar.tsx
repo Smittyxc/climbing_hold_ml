@@ -1,13 +1,11 @@
 import {
   ArrowUpCircleIcon,
-  BarChartIcon,
   ClipboardListIcon,
   DatabaseIcon,
-  FileIcon,
-  FolderIcon,
+  Home,
   Layers,
   LayoutDashboardIcon,
-  UsersIcon,
+  Mountain,
 } from "lucide-react";
 
 import { NavMain } from "@/components/layout/nav-main";
@@ -30,6 +28,11 @@ const data = {
   },
   navMain: [
     {
+      title: "Home",
+      url: "/protected",
+      icon: Home,
+    },
+    {
       title: "Boards",
       url: "/boards",
       icon: Layers,
@@ -40,19 +43,9 @@ const data = {
       icon: LayoutDashboardIcon,
     },
     {
-      title: "Select Wall",
-      url: "#",
-      icon: BarChartIcon,
-    },
-    {
-      title: "Projects",
-      url: "#",
-      icon: FolderIcon,
-    },
-    {
-      title: "Team",
-      url: "#",
-      icon: UsersIcon,
+      title: "Climb",
+      url: "/climb",
+      icon: Mountain,
     },
   ],
   documents: [
@@ -66,11 +59,7 @@ const data = {
       url: "#",
       icon: ClipboardListIcon,
     },
-    {
-      name: "Word Assistant",
-      url: "#",
-      icon: FileIcon,
-    },
+
   ],
 };
 

@@ -1,7 +1,5 @@
-import { useEffect, useState } from 'react';
 import { useSession } from '@/context/SessionContext';
 import { getBoardsByUserId, getRoutesByUserId } from '@/supabaseActions/queries'; // <-- Add route query
-import { Board, Route } from '@/lib/db_types'; // <-- Add Route type
 import { Skeleton } from '@/components/ui/skeleton';
 import { Link } from 'react-router-dom';
 import { Plus } from 'lucide-react';
@@ -14,50 +12,45 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { useQuery } from '@tanstack/react-query';
 
 export default function RoutesPage() {
   const { session } = useSession()
   const user = session?.user;
 
-  const [userRoutes, setUserRoutes] = useState<Route[]>([]);
-  const [userBoards, setUserBoards] = useState<Board[]>([]);
 
-  const [isLoadingRoutes, setIsLoadingRoutes] = useState(true);
-  const [isLoadingBoards, setIsLoadingBoards] = useState(true);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      if (!user?.id) {
-        setIsLoadingRoutes(false);
-        setIsLoadingBoards(false);
-        return;
-      }
+  const {
+    data: userRoutes = [],
+    isLoading: isRoutesLoading,
+    isError: isRoutesError,
+    error: routesError
+  } = useQuery({
+    queryKey: ['routes', user?.id],
+    queryFn: () => getRoutesByUserId(user?.id || null),
+    enabled: !!user?.id
+  })
 
-      // Fetch both routes and boards simultaneously
-      const [routesData, boardsData] = await Promise.all([
-        getRoutesByUserId(user.id),
-        getBoardsByUserId(user.id)
-      ]);
-
-      setUserRoutes(routesData || []);
-      setUserBoards(boardsData || []);
-
-      setIsLoadingRoutes(false);
-      setIsLoadingBoards(false);
-    };
-
-    fetchData();
-  }, [user?.id]);
+  const {
+    data: userBoards = [],
+    isLoading: isBoardsLoading,
+    isError: isBoardsError,
+    error: boardsError
+  } = useQuery({
+    queryKey: ['boards', user?.id],
+    queryFn: () => getBoardsByUserId(user?.id || null),
+    enabled: !!user?.id
+  })
 
   return (
     <div className="relative h-screen w-full max-w-md mx-auto flex flex-col bg-background">
 
-      <header className="sticky top-0 z-10 bg-white border-b px-6 py-5">
+      <header className="sticky top-0 z-10 bg-slate-800 text-white shadow-md border-b px-6 py-5">
         <h1 className="text-3xl font-bold tracking-tight">Your Routes</h1>
       </header>
 
       <main className="flex-1 overflow-y-auto p-6 space-y-4 pb-24 md:pb-6">
-        {isLoadingRoutes ? (
+        {isRoutesLoading ? (
           <div className="space-y-3">
             <Skeleton className="h-16 w-full rounded-lg" />
             <Skeleton className="h-16 w-full rounded-lg" />
@@ -68,6 +61,11 @@ export default function RoutesPage() {
             <p className="text-muted-foreground">
               No routes found. Tap the + to create your first climb!
             </p>
+          </div>
+        ) : isRoutesError ? (
+          <div className="p-4 border border-red-500/50 bg-red-500/10 rounded-lg text-center text-red-500">
+            <p className="font-semibold">Failed to load climbs.</p>
+            <p className="text-sm opacity-80">{routesError?.message}</p>
           </div>
         ) : (
           <div className="flex flex-col gap-3">
@@ -114,26 +112,34 @@ export default function RoutesPage() {
           </DialogHeader>
 
           <div className="space-y-3 mt-4">
-            {isLoadingBoards ? (
+            {isBoardsLoading ? (
               <Skeleton className="h-12 w-full rounded-md" />
             ) : userBoards.length === 0 ? (
               <div className="text-sm text-muted-foreground text-center">
                 You don't have any boards yet. <br />
                 <Link to="/boards" className="text-primary underline">Create a board first</Link>.
               </div>
-            ) : (
-              userBoards.map((board) => (
-                <Link
-                  key={board.id}
-                  to={`/routes/${board.id}/new`}
-                  className="block"
-                >
-                  <div className="p-3 border rounded-md flex items-center justify-between hover:border-primary transition-colors">
-                    <span className="font-medium">{board.name}</span>
-                  </div>
-                </Link>
-              ))
-            )}
+            ) : isBoardsError ? (
+              <div className="p-4 border border-red-500/50 bg-red-500/10 rounded-lg text-center text-red-500">
+                <p className="font-semibold">Failed to load climbs.</p>
+                <p className="text-sm opacity-80">{boardsError.message}</p>
+              </div>
+            )
+
+
+              : (
+                userBoards.map((board) => (
+                  <Link
+                    key={board.id}
+                    to={`/routes/${board.id}/new`}
+                    className="block"
+                  >
+                    <div className="p-3 border rounded-md flex items-center justify-between hover:border-primary transition-colors">
+                      <span className="font-medium">{board.name}</span>
+                    </div>
+                  </Link>
+                ))
+              )}
           </div>
         </DialogContent>
       </Dialog>

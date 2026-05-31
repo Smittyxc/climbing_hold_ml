@@ -1,54 +1,49 @@
-import { useState, useEffect } from 'react';
-import type { BoardWithHolds, HoldType, Route } from '@/lib/db_types';
+import { useMemo } from 'react';
+import type { HoldType } from '@/lib/db_types';
 import { useParams } from 'react-router-dom';
-import { CompleteRoute, getBoardWithHolds, getCompleteRoute, getRouteDetailsById } from '@/supabaseActions/queries';
+import { getBoardWithHolds, getCompleteRoute, getRouteDetailsById } from '@/supabaseActions/queries';
 import KonvaRouteDisplay from './KonvaDisplay';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useQuery } from '@tanstack/react-query';
 
 
 
 
 export default function ClimbDisplay() {
-  const [completeRoute, setCompleteRoute] = useState<CompleteRoute | null>([]);
   const { boardId, routeId } = useParams<{ boardId: string, routeId: string }>();
-  const [boardData, setBoardData] = useState<BoardWithHolds | null>(null);
-  const [routeDetails, setRouteDetails] = useState<Route | null>();
-  const [isLoading, setIsLoading] = useState(true);
-  const imageUrl = boardData?.image_url || '';
-  // const { session, defaultBoard } = useSession();
 
+  const {
+    data,
+    isLoading
+  } = useQuery({
+    queryKey: ['climb', routeId],
+    queryFn: async () => {
+      const [board, holds, routeDetails] = await Promise.all([
+        getBoardWithHolds(boardId || null),
+        getCompleteRoute(routeId),
+        getRouteDetailsById(routeId)
+      ]);
+      return { board, holds, routeDetails };
+    },
+    enabled: !!routeId && routeId !== 'new',
+  });
 
-  useEffect(() => {
-    const fetchBoard = async () => {
-      if (!boardId) return;
+  const imageUrl = data?.board?.image_url || '';
 
-      const boardAndHolds = await getBoardWithHolds(boardId);
-      const routeHolds = await getCompleteRoute(routeId)
-      const routeData = await getRouteDetailsById(routeId)
+  const allHolds = useMemo(() => {
+    return data?.holds?.map(hold => hold.holds) || [];
+  }, [data]);
 
-      setCompleteRoute(routeHolds)
-      setRouteDetails(routeData)
-
-      setBoardData(boardAndHolds);
-      setIsLoading(false);
-    };
-
-    fetchBoard();
-  }, [boardId, routeId]);
-
-  const allHolds = completeRoute?.map(hold => hold.holds) || [];
-
-  const routeHolds = completeRoute?.reduce((acc, routeHold) => {
-    acc[routeHold.hold_id] = routeHold.type || 'hand';
-    return acc
-  }, {} as Record<string, HoldType>);
+  const routeHolds = useMemo(() => {
+    return data?.holds?.reduce((acc, routeHold) => {
+      acc[routeHold.hold_id] = routeHold.type || 'hand';
+      return acc;
+    }, {} as Record<string, HoldType>);
+  }, [data]);
 
   const handleHoldClick = () => {
-    return
+    return null;
   };
-
-
-
 
   return (
     <div className='w-full h-screen'>
@@ -61,7 +56,7 @@ export default function ClimbDisplay() {
           routeHolds={routeHolds || {}}
           onHoldClick={handleHoldClick}
           isViewOnly={true}
-          routeDetails={routeDetails || null}
+          routeDetails={data?.routeDetails || null}
         />
 
       )}

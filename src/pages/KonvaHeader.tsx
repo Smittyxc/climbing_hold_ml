@@ -31,6 +31,7 @@ export default function KonvaHeader({
     }
 
     toast.success(`Deleted ${name}`)
+    navigate('/routes')
   }
 
   return (

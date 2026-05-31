@@ -8,6 +8,12 @@
 
 [**`🌐 App Demo`**](https://react-supabase-shadcn-auth-template.vercel.app/)
 
+## TODO
+- Add route filtering and sorting
+- in climb page, only load routes that belong to default board
+- add/remove holds feature
+- Ability to log sends (angle, diffifculty, comments)
+
 ## Features
 
 - 🚀 Protected Routes

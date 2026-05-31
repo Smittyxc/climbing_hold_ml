@@ -12,7 +12,6 @@ import ClimbPage from "@/pages/ClimbPage.tsx";
 import ClimbDisplay from "@/pages/ClimbDisplayPage.tsx";
 
 const router = createBrowserRouter([
-  // I recommend you reflect the routes here in the pages folder
   {
     path: "/",
     element: <Providers />,

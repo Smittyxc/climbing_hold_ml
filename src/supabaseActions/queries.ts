@@ -4,7 +4,7 @@ import type { BoardWithHolds, RouteHoldInsert } from '@/lib/db_types';
 import { QueryData, Session } from "@supabase/supabase-js";
 
 
-export async function getBoardsByUserId(id: string | undefined) {
+export async function getBoardsByUserId(id: string | null) {
   if (!id) {
     return []
   }
@@ -15,6 +15,7 @@ export async function getBoardsByUserId(id: string | undefined) {
 
   if (error) {
     console.error('Error retreiving board:', error.message)
+    throw new Error(error.message)
   }
 
   return data
@@ -90,7 +91,9 @@ export async function uploadHolds(holds: HoldInsert[]) {
   return response
 }
 
-export async function getBoardWithHolds(boardId: string): Promise<BoardWithHolds | null> {
+export async function getBoardWithHolds(boardId: string | null): Promise<BoardWithHolds | null> {
+  if (!boardId) return null;
+
   const { data, error } = await supabaseClient
     .from('boards')
     .select(`
@@ -212,7 +215,9 @@ export async function addRouteHolds(payload: RouteHoldInsert[]) {
 
 }
 
-export async function getRoutesByUserId(userId: string) {
+export async function getRoutesByUserId(userId: string | null) {
+  if (!userId) return []
+
   const { data, error } = await supabaseClient
     .from('routes')
     .select('*')
@@ -221,7 +226,7 @@ export async function getRoutesByUserId(userId: string) {
 
   if (error) {
     console.error('Error retrieving routes:', error.message);
-    return [];
+    throw new Error(error.message);
   }
 
   return data;

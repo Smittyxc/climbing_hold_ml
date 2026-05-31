@@ -1,4 +1,4 @@
-import { Save } from 'lucide-react';
+import { Loader2, Save } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -29,6 +29,7 @@ interface MobileRouteBuilderProps {
   routeGrade: string;
   setRouteGrade: (grade: string) => void;
   handleSaveRoute: () => void;
+  isSubmitting: boolean;
 }
 export default function MobileRouteBuilder({
   isDrawerOpen,
@@ -37,7 +38,8 @@ export default function MobileRouteBuilder({
   setRouteName,
   routeGrade,
   setRouteGrade,
-  handleSaveRoute
+  handleSaveRoute,
+  isSubmitting,
 }: MobileRouteBuilderProps) {
 
   return (
@@ -95,8 +97,19 @@ export default function MobileRouteBuilder({
           </div>
 
           <DrawerFooter>
-            <Button onClick={handleSaveRoute} className="w-full">
-              Publish Route
+            <Button
+              onClick={handleSaveRoute}
+              className="w-full"
+              disabled={isSubmitting || routeName === '' || routeGrade === ''}
+            >
+              {isSubmitting ? (
+                <div className='flex gap-2'>
+                  <Loader2 />
+                  <p>Submitting...</p>
+                </div>
+              ) : (
+                <p>Publish Route</p>
+              )}
             </Button>
             <DrawerClose asChild>
               <Button variant="outline" className="w-full">
