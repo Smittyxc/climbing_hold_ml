@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import type { BoardWithHolds, HoldType, RouteHoldInsert } from '@/lib/db_types';
+import type { BoardWithHolds, HoldType, Route, RouteHoldInsert } from '@/lib/db_types';
 import { useNavigate, useParams } from 'react-router-dom';
 import { addRouteHolds, deleteRouteHolds, getBoardWithHolds, getRouteDetailsById, getRouteHoldsById, saveRoute, updateRoute } from '@/supabaseActions/queries';
 import KonvaRouteDisplay from './KonvaDisplay';
@@ -24,6 +24,7 @@ export default function RouteBuilder() {
 
   const [routeName, setRouteName] = useState("");
   const [routeGrade, setRouteGrade] = useState("");
+  const [routeDetails, setRouteDetails] = useState<Route>()
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
   useEffect(() => {
@@ -43,6 +44,7 @@ export default function RouteBuilder() {
         setRouteHolds(existingHolds)
         const routeDetails = await getRouteDetailsById(routeId);
         if (routeDetails) {
+          setRouteDetails(routeDetails)
           setRouteName(routeDetails.name);
           setRouteGrade(routeDetails.grade || "");
         }
@@ -54,7 +56,10 @@ export default function RouteBuilder() {
     fetchBoard();
   }, [boardId, routeId]);
 
-  const handleHoldClick = (holdId: string) => {
+  const handleHoldClick = (holdId: string | null) => {
+    if (!holdId) {
+      return null
+    }
     setRouteHolds((prev) => {
       const currentType = prev[holdId] || 'unassigned';
       const currentIndex = cycleOrder.indexOf(currentType);
@@ -83,7 +88,6 @@ export default function RouteBuilder() {
 
     try {
       let finalRouteId = routeId;
-      // STEP 1: UPSERT THE ROUTE
       if (routeId === 'new' && boardId) {
         // CREATE: Insert the new route and get the generated ID back
         const routeData = await saveRoute(
@@ -131,6 +135,8 @@ export default function RouteBuilder() {
             allHolds={boardData?.holds || []}
             routeHolds={routeHolds}
             onHoldClick={handleHoldClick}
+            isViewOnly={false}
+            routeDetails={routeDetails}
           />
           <MobileRouteBuilder
             isDrawerOpen={isDrawerOpen}

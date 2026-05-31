@@ -8,6 +8,8 @@ import { AuthPage } from "@/pages/AuthPage.tsx";
 import RouteBuilder from "@/pages/RouteBuilderPage.tsx";
 import BoardBuilder from "@/pages/BoardBuilderPage.tsx";
 import RoutesPage from "@/pages/RoutePage.tsx";
+import ClimbPage from "@/pages/ClimbPage.tsx";
+import ClimbDisplay from "@/pages/ClimbDisplayPage.tsx";
 
 const router = createBrowserRouter([
   // I recommend you reflect the routes here in the pages folder
@@ -44,6 +46,14 @@ const router = createBrowserRouter([
           {
             path: "/boards",
             element: <BoardBuilder />
+          },
+          {
+            path: "/climb",
+            element: <ClimbPage />
+          },
+          {
+            path: "/climb/:boardId/:routeId",
+            element: <ClimbDisplay />
           }
 
         ],

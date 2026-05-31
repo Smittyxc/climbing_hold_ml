@@ -1,4 +1,4 @@
-import { Home, LayoutGrid, RouteIcon } from "lucide-react"
+import { BrickWall, Home, Mountain, RouteIcon } from "lucide-react"
 import { Link } from "react-router-dom"
 
 const NavMobile = () => {
@@ -10,8 +10,13 @@ const NavMobile = () => {
         <span className="text-[10px] mt-1">Home</span>
       </Link>
 
+      <Link to="/climb" className="flex flex-col items-center p-2 text-muted-foreground hover:text-primary">
+        <Mountain className="h-5 w-5" />
+        <span className="text-[10px] mt-1">Climb</span>
+      </Link>
+
       <Link to="/boards" className="flex flex-col items-center p-2 text-muted-foreground hover:text-primary">
-        <LayoutGrid className="h-5 w-5" />
+        <BrickWall className="h-5 w-5" />
         <span className="text-[10px] mt-1">Boards</span>
       </Link>
 

@@ -1,6 +1,7 @@
 import { HoldInsert } from "@/lib/db_types"
 import supabaseClient from "@/lib/supabaseClient"
 import type { BoardWithHolds, RouteHoldInsert } from '@/lib/db_types';
+import { QueryData, Session } from "@supabase/supabase-js";
 
 
 export async function getBoardsByUserId(id: string | undefined) {
@@ -52,18 +53,26 @@ export async function uploadBoard(
   return response
 }
 
-// export async function getBoardImageByUserId(
-//   imageUrl: string,
-//   userId: string
-// ) {
-//   const response = await supabaseClient
-//     .storage
-//     .from('board-images')
-//     .getPublicUrl()
-//     .eq();
+export async function getUserById(id: string | null) {
+  if (!id) {
+    return null;
+  }
 
-//   return response
-// }
+  const { data, error } = await supabaseClient
+    .from('users')
+    .select('*')
+    .eq('id', id)
+    .maybeSingle();
+
+  if (error) {
+    console.error('Error retrieving user data:', error.message);
+    return null;
+  }
+
+  return data;
+
+
+}
 
 export async function uploadBoardImage(fileName: string, imageFile: File) {
   const response = await supabaseClient.storage
@@ -120,7 +129,7 @@ export async function getRouteDetailsById(routeId: string | undefined) {
 
   const { data, error } = await supabaseClient
     .from('routes')
-    .select('name, grade')
+    .select('*')
     .eq('id', routeId)
     .single();
 
@@ -154,6 +163,18 @@ export async function saveRoute(
   if (routeError) throw routeError;
 
   return routeData
+}
+
+export async function deleteRoute(
+  routeId: string
+) {
+  const response = await supabaseClient
+    .from('routes')
+    .delete()
+    .eq('id', routeId)
+
+
+  return response
 }
 
 export async function updateRoute(
@@ -206,3 +227,40 @@ export async function getRoutesByUserId(userId: string) {
   return data;
 }
 
+const completeRouteQuery = supabaseClient
+  .from('route_holds')
+  .select(`*,
+      holds(*)  
+    `);
+
+export type CompleteRoute = QueryData<typeof completeRouteQuery>;
+
+export async function getCompleteRoute(id: string | undefined) {
+  if (!id) return []
+
+  const { data, error } = await completeRouteQuery.eq('route_id', id);
+
+  if (error) {
+    console.error('Error retrieving route details:', error.message);
+    return null;
+  }
+
+  return data;
+}
+
+export const updateUserDefaultBoard = async (boardId: string, session: Session | null) => {
+  if (!session) {
+    return null
+  }
+
+  const { error } = await supabaseClient
+    .from('users')
+    .update({ default_board_id: boardId })
+    .eq('id', session?.user.id);
+
+  if (error) {
+    console.error('Error retrieving route details:', error.message);
+    return null
+  }
+
+}

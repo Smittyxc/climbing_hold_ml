@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import supabaseClient from "@/lib/supabaseClient";
@@ -72,102 +72,90 @@ export function AuthPage() {
   }, [session, navigate]);
 
   return (
-    <div className="grid min-h-svh lg:grid-cols-2 bg-black">
-      <div className="flex flex-col gap-4 p-6 md:p-10 bg-primary/70">
-        <Link to="/" className="text-secondary hover:underline">
-          Home
-        </Link>
-        <div className="flex flex-1 items-center justify-center">
-          <div className="w-full max-w-md p-8 pb-18 pt-12 rounded-md shadow-md bg-white">
-            <Tabs defaultValue="login" className="w-full">
-              <div className="flex flex-col items-center gap-2 mb-2 text-center">
-                <img src="/logo.png" alt="logo" width={150} height={150} />
-                <h1 className="text-2xl font-bold text-primary">Acme Inc</h1>
-                <p className="text-primary opacity-80 font-medium">
-                  Bringing the world together
-                </p>
-              </div>
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="login">Login</TabsTrigger>
-                <TabsTrigger value="register">Register</TabsTrigger>
-              </TabsList>
+    <div className="flex flex-col p-6 md:p-10 bg-orange-800">
+      <div className="flex flex-1 items-center justify-center">
+        <div className="w-full max-w-md p-8 pb-18 pt-12 rounded-md shadow-md bg-white">
+          <Tabs defaultValue="login" className="w-full">
+            <div className="flex flex-col items-center gap-2 mb-2 text-center">
+              <img src="/logo.png" alt="logo" width={150} height={150} />
+              <h1 className="text-2xl font-bold  text-primary">Hazel Climbing</h1>
+              <p className="text-primary opacity-80 font-medium">
+                Build - Set - Send
+              </p>
+            </div>
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="login">Login</TabsTrigger>
+              <TabsTrigger value="register">Register</TabsTrigger>
+            </TabsList>
 
-              {/* Login Tab Content */}
-              <TabsContent value="login">
-                <form className="flex flex-col gap-6" onSubmit={handleLogin}>
-                  <div className="grid gap-6">
-                    <div className="grid gap-2">
-                      <Label htmlFor="login-email">Email</Label>
-                      <Input
-                        id="login-email"
-                        type="email"
-                        placeholder="m@example.com"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        required
-                      />
-                    </div>
-                    <div className="grid gap-2">
-                      <div className="flex items-center">
-                        <Label htmlFor="login-password">Password</Label>
-                      </div>
-                      <Input
-                        id="login-password"
-                        type="password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        required
-                      />
-                    </div>
-                    <Button type="submit" className="w-full" disabled={loading}>
-                      {loading ? "Logging In..." : "Login"}
-                    </Button>
+            {/* Login Tab Content */}
+            <TabsContent value="login">
+              <form className="flex flex-col gap-6" onSubmit={handleLogin}>
+                <div className="grid gap-6">
+                  <div className="grid gap-2">
+                    <Label htmlFor="login-email">Email</Label>
+                    <Input
+                      id="login-email"
+                      type="email"
+                      placeholder="m@example.com"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      required
+                    />
                   </div>
-                </form>
-              </TabsContent>
+                  <div className="grid gap-2">
+                    <div className="flex items-center">
+                      <Label htmlFor="login-password">Password</Label>
+                    </div>
+                    <Input
+                      id="login-password"
+                      type="password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      required
+                    />
+                  </div>
+                  <Button type="submit" className="w-full" disabled={loading}>
+                    {loading ? "Logging In..." : "Login"}
+                  </Button>
+                </div>
+              </form>
+            </TabsContent>
 
-              {/* Register Tab Content */}
-              <TabsContent value="register">
-                <form className="flex flex-col gap-6" onSubmit={handleRegister}>
-                  <div className="grid gap-6">
-                    <div className="grid gap-2">
-                      <Label htmlFor="register-email">Email</Label>
-                      <Input
-                        id="register-email"
-                        type="email"
-                        placeholder="m@example.com"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        required
-                      />
-                    </div>
-                    <div className="grid gap-2">
-                      <Label htmlFor="register-password">Password</Label>
-                      <Input
-                        id="register-password"
-                        type="password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        required
-                      />
-                    </div>
-                    <Button type="submit" className="w-full" disabled={loading}>
-                      {loading ? "Creating Account..." : "Register"}
-                    </Button>
+            {/* Register Tab Content */}
+            <TabsContent value="register">
+              <form className="flex flex-col gap-6" onSubmit={handleRegister}>
+                <div className="grid gap-6">
+                  <div className="grid gap-2">
+                    <Label htmlFor="register-email">Email</Label>
+                    <Input
+                      id="register-email"
+                      type="email"
+                      placeholder="m@example.com"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      required
+                    />
                   </div>
-                </form>
-              </TabsContent>
-            </Tabs>
-          </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="register-password">Password</Label>
+                    <Input
+                      id="register-password"
+                      type="password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      required
+                    />
+                  </div>
+                  <Button type="submit" className="w-full" disabled={loading}>
+                    {loading ? "Creating Account..." : "Register"}
+                  </Button>
+                </div>
+              </form>
+            </TabsContent>
+          </Tabs>
         </div>
       </div>
-      <div className="relative hidden bg-muted lg:block">
-        {/* <img
-          src="/image.avif"
-          alt="Image"
-          className="absolute inset-0 h-full w-full object-cover dark:brightness-[0.2] dark:grayscale"
-        /> */}
-      </div>
     </div>
-  );
+  )
 }

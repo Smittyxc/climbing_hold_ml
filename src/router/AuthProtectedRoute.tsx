@@ -10,6 +10,8 @@ import NavMobile from "@/components/layout/nav-mobile";
 const AuthProtectedRoute = () => {
   const { session } = useSession();
   const isBuilderPage = useMatch('/routes/:boardId/:routeId');
+  const isClimbDisplayPage = useMatch('/climb/:boardId/:routeId');
+
 
   if (!session) {
     return <Navigate to="/auth" replace />
@@ -17,8 +19,8 @@ const AuthProtectedRoute = () => {
   return (
     <SidebarProvider className="md:m-0 p-0">
       <AppSidebar />
-      <SidebarInset className={`relative flex-1 md:m-0 ${!isBuilderPage ? 'pb-16 md:pb-0' : ''}`}>
-        {!isBuilderPage &&
+      <SidebarInset className={`relative flex-1 md:m-0 ${!(isBuilderPage || isClimbDisplayPage) ? 'pb-16 md:pb-0' : ''}`}>
+        {!(isBuilderPage || isClimbDisplayPage) &&
           <NavMobile />
         }
         <Outlet />

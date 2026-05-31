@@ -2,11 +2,16 @@ import { createContext, useContext, useEffect, useState } from "react";
 import supabaseClient from "../lib/supabaseClient";
 import LoadingPage from "../pages/LoadingPage";
 import { Session } from "@supabase/supabase-js";
+import { getUserById } from "@/supabaseActions/queries";
 
 const SessionContext = createContext<{
   session: Session | null;
+  defaultBoard: string | null;
+  setDefaultBoard: (boardId: string | null) => void;
 }>({
   session: null,
+  defaultBoard: null,
+  setDefaultBoard: () => { },
 });
 
 // eslint-disable-next-line react-refresh/only-export-components
@@ -21,23 +26,33 @@ export const useSession = () => {
 type Props = { children: React.ReactNode };
 export const SessionProvider = ({ children }: Props) => {
   const [session, setSession] = useState<Session | null>(null);
+  const [defaultBoard, setDefaultBoard] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const authStateListener = supabaseClient.auth.onAuthStateChange(
-      async (_, session) => {
-        setSession(session);
+    const { data: { subscription } } = supabaseClient.auth.onAuthStateChange(
+      async (_, currentSession) => {
+        setSession(currentSession);
+
+        if (currentSession?.user.id) {
+          const response = await getUserById(currentSession.user.id);
+          if (response) {
+            setDefaultBoard(response.default_board_id);
+          }
+        } else {
+          setDefaultBoard(null);
+        }
+
         setIsLoading(false);
       }
     );
-
     return () => {
-      authStateListener.data.subscription.unsubscribe();
+      subscription.unsubscribe();
     };
   }, []);
 
   return (
-    <SessionContext.Provider value={{ session }}>
+    <SessionContext.Provider value={{ session, defaultBoard, setDefaultBoard }}>
       {isLoading ? <LoadingPage /> : children}
     </SessionContext.Provider>
   );

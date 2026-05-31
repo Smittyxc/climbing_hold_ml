@@ -133,6 +133,35 @@ export type Database = {
           },
         ]
       }
+      users: {
+        Row: {
+          default_board_id: string | null
+          first_name: string | null
+          id: string
+          last_name: string | null
+        }
+        Insert: {
+          default_board_id?: string | null
+          first_name?: string | null
+          id: string
+          last_name?: string | null
+        }
+        Update: {
+          default_board_id?: string | null
+          first_name?: string | null
+          id?: string
+          last_name?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "users_default_board_id_fkey"
+            columns: ["default_board_id"]
+            isOneToOne: false
+            referencedRelation: "boards"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never

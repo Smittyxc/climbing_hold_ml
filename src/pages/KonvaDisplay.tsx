@@ -1,14 +1,17 @@
 import { useState, useEffect } from 'react';
 import { Image, Layer, Stage, Rect } from 'react-konva';
 import useImage from 'use-image';
-import type { Hold, HoldType } from '@/lib/db_types';
+import type { Hold, HoldType, Route } from '@/lib/db_types';
+import KonvaHeader from './KonvaHeader';
 
 // 1. Define the props the component expects
 interface KonvaRouteDisplayProps {
   imageUrl: string;
   allHolds: Hold[];
   routeHolds: Record<string, HoldType>
-  onHoldClick: (id: string) => void;
+  onHoldClick: (id: string | null) => void;
+  isViewOnly: boolean;
+  routeDetails: Route | null | undefined;
 }
 
 const holdColors: Record<HoldType, string> = {
@@ -23,10 +26,11 @@ export default function KonvaRouteDisplay({
   imageUrl,
   allHolds,
   routeHolds,
-  onHoldClick
+  onHoldClick,
+  routeDetails,
+  isViewOnly
 }: KonvaRouteDisplayProps) {
   const [image, status] = useImage(imageUrl, 'anonymous');
-
   const [windowSize, setWindowSize] = useState({
     width: window.innerWidth,
     height: window.innerHeight,
@@ -58,6 +62,11 @@ export default function KonvaRouteDisplay({
 
   return (
     <div className='flex justify-center items-center h-screen w-screen md:w-[calc(100vw-16rem)] bg-gray-950'>
+      <KonvaHeader
+        isViewOnly={isViewOnly}
+        name={routeDetails?.name || 'Unknown'}
+        grade={routeDetails?.grade || 'V?'}
+      />
       <Stage
         width={stageWidth}
         height={stageHeight}
